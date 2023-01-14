@@ -8,12 +8,22 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+    - name: Report versions
+      run: |
+        rustup --version
+        rustc -Vv
+
     - name: Update rustup
       run: rustup self update
 
     - name: Install mdbook
       run: |
-        cargo install mdbook
+        mkdir bin
+        curl -sSL `curl -s https://api.github.com/repos/rust-lang/mdBook/releases/latest | grep 'x86_64-unknown-linux-gnu.tar.gz"' | cut -d : -f 2,3 | tr -d '"' | grep 'releases/download'` | tar -xz --directory=bin
+        echo "$(pwd)/bin" >> ${GITHUB_PATH}
+
+    - name: Install mdbook-epub
+      run: |
         cargo install mdbook-epub
 
     - name: Report versions
@@ -22,22 +32,28 @@ jobs:
         rustc -Vv
         mdbook --version
         mdbook-epub --version
+        which mdbook
+        which mdbook-epub
 
     - uses: actions/checkout@v3
+      with:
+        repository: 'rust-lang-cn/book-cn'
+        path: 'book'
 
     - name: modify book.toml
       run: |
-        echo >> book.toml
-        echo "[output.epub]" >> book.toml
+        echo >> book/book.toml
+        echo "[output.epub]" >> book/book.toml
 
     - name: build
       run: |
+        cd book
         mdbook build
 
     - name: artifact
       uses: actions/upload-artifact@v3
       with:
         name: trpl.epub
-        path: book/epub/*.epub
+        path: book/book/epub/*.epub
         if-no-files-found: error
         retention-days: 1
