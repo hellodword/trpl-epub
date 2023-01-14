@@ -1,0 +1,43 @@
+name: Build
+on: 
+  workflow_dispatch:
+
+jobs:
+  test:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+
+    - name: Update rustup
+      run: rustup self update
+
+    - name: Install mdbook
+      run: |
+        cargo install mdbook
+        cargo install mdbook-epub
+
+    - name: Report versions
+      run: |
+        rustup --version
+        rustc -Vv
+        mdbook --version
+        mdbook-epub --version
+
+    - uses: actions/checkout@v3
+
+    - name: modify book.toml
+      run: |
+        echo >> book.toml
+        echo "[output.epub]" >> book.toml
+
+    - name: build
+      run: |
+        mdbook build
+
+    - name: artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: trpl.epub
+        path: book/epub/*.epub
+        if-no-files-found: error
+        retention-days: 1
