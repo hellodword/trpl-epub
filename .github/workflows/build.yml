@@ -8,6 +8,20 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+    - uses: actions/checkout@v3
+      with:
+        repository: 'rust-lang-cn/book-cn'
+        path: 'book'
+
+    - name: ⚡ Cache
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cargo/registry
+          ~/.cargo/git
+          target
+        key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+
     - name: Report versions
       run: |
         rustup --version
@@ -34,11 +48,6 @@ jobs:
         mdbook-epub --version
         which mdbook
         which mdbook-epub
-
-    - uses: actions/checkout@v3
-      with:
-        repository: 'rust-lang-cn/book-cn'
-        path: 'book'
 
     - name: modify book.toml
       run: |
